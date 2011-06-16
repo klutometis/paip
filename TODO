@@ -8,7 +8,7 @@
   result.
 
   #+BEGIN_SRC lisp :tangle 1.1.lisp :shebang #!/usr/local/bin/sbcl --script
-    (defparameter names
+    (defvar *names*
       '((John Q Public)
         (Malcom X)
         (Admiral Grace Murray Hopper)
@@ -33,6 +33,8 @@
                     ultimate-name))
               name))
     
-    (write (mapcar #'last-name names))
+    (assert (equal
+             (mapcar #'last-name *names*)
+             '(PUBLIC X HOPPER SPOT ARISTOTLE MILNE TOP OLIVIER SCARLET MORGAN DOWNEY)))
     
   #+END_SRC
