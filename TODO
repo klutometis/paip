@@ -1,0 +1,38 @@
+# -*- org -*-
+* 1
+  We could reverse the name, and play the first-name trick; I'd like
+  to recurse, though, and backtrack when we encounter something in
+  =*suffices*=.
+
+  Pathological case when the only same is e.g. `Jr.'? `Jr.' is the
+  result.
+
+  #+BEGIN_SRC lisp :tangle 1.1.lisp :shebang #!/usr/local/bin/sbcl --script
+    (defparameter names
+      '((John Q Public)
+        (Malcom X)
+        (Admiral Grace Murray Hopper)
+        (Spot)
+        (Aristotle)
+        (A A Milne)
+        (Z Z Top)
+        (Sir Larry Olivier)
+        (Miss Scarlet)
+        (Rex Morgan MD)
+        (Morton Downey Jr.))
+      "List of names upon which to test")
+    
+    (defparameter *suffices*
+      '(Jr. MD))
+    
+    (defun last-name (name)
+      "Select the last name from a name represented as a list."
+      (reduce (lambda (penultimate-name ultimate-name)
+                (if (member ultimate-name *suffices*)
+                    penultimate-name
+                    ultimate-name))
+              name))
+    
+    (write (mapcar #'last-name names))
+    
+  #+END_SRC
