@@ -38,3 +38,13 @@
              '(PUBLIC X HOPPER SPOT ARISTOTLE MILNE TOP OLIVIER SCARLET MORGAN DOWNEY)))
     
   #+END_SRC
+
+  #+BEGIN_SRC lisp :tangle 1.2.lisp :shebang #!/usr/local/bin/sbcl --script
+    (defun exponentiate (base power)
+      (if (zerop power)
+          1
+          (* base (exponentiate base (- power 1)))))
+    
+    (assert (= (exponentiate 3 2) 9))
+    
+  #+END_SRC
