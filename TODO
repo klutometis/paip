@@ -36,7 +36,6 @@
     (assert (equal
              (mapcar #'last-name *names*)
              '(PUBLIC X HOPPER SPOT ARISTOTLE MILNE TOP OLIVIER SCARLET MORGAN DOWNEY)))
-    
   #+END_SRC
 
   #+BEGIN_SRC lisp :tangle 1.2.lisp :shebang #!/usr/local/bin/sbcl --script
@@ -46,5 +45,41 @@
           (* base (exponentiate base (- power 1)))))
     
     (assert (= (exponentiate 3 2) 9))
+  #+END_SRC
+
+  Some things implicit in this solution: if it's not =null=, it's a
+  list; of it's not =listp=, it's an atom.
+
+  #+BEGIN_SRC lisp :tangle 1.3.lisp :shebang #!/usr/local/bin/sbcl --script
+    (defun count-atoms (expression)
+      (if (null expression)
+          0
+          (let ((elt (car expression)))
+            (+ (if (listp elt) (count-atoms elt) 1)
+               (count-atoms (cdr expression))))))
     
+    (assert (= (count-atoms '(a (b d) c)) 4))    
+  #+END_SRC
+
+  How does this behave when =computor= is itself a list?
+
+  #+BEGIN_SRC lisp :tangle 1.4.lisp :shebang #!/usr/local/bin/sbcl --script
+    (defun count-anywhere (computor computandum)
+      (if (null computandum)
+          0
+          (let ((elt (car computandum)))
+            (+ (if (listp elt) (count-anywhere computor elt) (if (eql computor elt) 1 0))
+               (count-anywhere computor (cdr computandum))))))
+    
+    (assert (= (count-anywhere 'a '(a ((a) b) a)) 3))
+  #+END_SRC
+
+  We'll map the lists, producing an initial product; then reduce by
+  addition.
+
+  #+BEGIN_SRC lisp :tangle 1.5.lisp :shebang #!/usr/local/bin/sbcl --script
+    (defun dot-product (x y)
+      (apply #'+ (mapcar #'* x y)))
+    
+    (assert (= (dot-product '(10 20) '(3 4)) 110))
   #+END_SRC
