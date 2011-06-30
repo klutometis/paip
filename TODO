@@ -114,4 +114,36 @@
      program; a paramemter will normally stay constant.
    - a change to a parameter is considered a change to the program,
      not by the program.
+     - what about when the generatedc word happens to correspond to a
+      rule; e.g.  sentence, Article?
 
+   #+BEGIN_QUOTE
+   #+BEGIN_SRC lisp
+     (defun generate (phrase)
+       "Generate a random sentence or phrase"
+       (cond ((listp phrase)
+              (mappend #'generate phrase))
+             ((rewrites phrase)
+              (generate (ransom-elt (rewrites phrase))))
+             (t (list phrase))))
+   #+END_SRC
+   #+END_QUOTE
+
+   - data-driven programming: data (rewrites associated with
+     category) drives what the prgoram does next.
+   - concise and extensible: add a new association without having to
+     modify the program.
+   - with if instead of cond:
+
+   #+BEGIN_QUOTE
+   #+BEGIN_SRC lisp
+     (defun generate (phrase)
+       "Generate a random sentence or phrase"
+       (if (listp phrase)
+           (mappend #'generate phrase)
+           (let ((choices (rewrites phrase)))
+             (if (null choices)
+                 (list phrase)
+                 (generate (random-elt choices))))))
+   #+END_SRC
+   #+END_QUOTE
