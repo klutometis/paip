@@ -79,7 +79,39 @@
 
   #+BEGIN_SRC lisp :tangle 1.5.lisp :shebang #!/usr/local/bin/sbcl --script
     (defun dot-product (x y)
+      "Compute the dot product, where x and y are lists of integers."
       (apply #'+ (mapcar #'* x y)))
     
     (assert (= (dot-product '(10 20) '(3 4)) 110))
   #+END_SRC
+
+** 1.2
+
+   - context-free phrase-structure grammar
+   - generative syntax
+   - thus, they are not functions in the mathematical sense, but they
+     are called functions in lisp, because they return a value.
+   - all functions in grammar, list of words; apply append.
+   - think of the position numbers as telling you how far you are from
+     the front.
+     - pretty good advice
+   - i include the symbol =->=, even though it serves no real purpose;
+     it is purely decorative.
+
+   #+BEGIN_QUOTE
+   #+BEGIN_SRC lisp
+     (defparamter *simple-grammar*
+         '((sentence -> (noun-phrase verb-phrase))
+           ...)
+       "Trivial grammar")
+     
+     (defvar *grammar* *simple-grammar*
+       "The grammar used; intitially trivial, but we can elaborate.")
+   #+END_SRC
+   #+END_QUOTE
+
+   - a variable is routinely changed during the course of running the
+     program; a paramemter will normally stay constant.
+   - a change to a parameter is considered a change to the program,
+     not by the program.
+
