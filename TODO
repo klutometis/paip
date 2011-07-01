@@ -85,65 +85,151 @@
     (assert (= (dot-product '(10 20) '(3 4)) 110))
   #+END_SRC
 
-** 1.2
+* 2
+  - context-free phrase-structure grammar
+  - generative syntax
+  - thus, they are not functions in the mathematical sense, but they
+    are called functions in lisp, because they return a value.
+  - all functions in grammar, list of words; apply append.
+  - think of the position numbers as telling you how far you are from
+    the front.
+    - pretty good advice
+  - i include the symbol =->=, even though it serves no real purpose;
+    it is purely decorative.
 
-   - context-free phrase-structure grammar
-   - generative syntax
-   - thus, they are not functions in the mathematical sense, but they
-     are called functions in lisp, because they return a value.
-   - all functions in grammar, list of words; apply append.
-   - think of the position numbers as telling you how far you are from
-     the front.
-     - pretty good advice
-   - i include the symbol =->=, even though it serves no real purpose;
-     it is purely decorative.
+  #+BEGIN_QUOTE
+  #+BEGIN_SRC lisp
+    (defparamter *simple-grammar*
+        '((sentence -> (noun-phrase verb-phrase))
+          ...)
+      "Trivial grammar")
 
-   #+BEGIN_QUOTE
-   #+BEGIN_SRC lisp
-     (defparamter *simple-grammar*
-         '((sentence -> (noun-phrase verb-phrase))
-           ...)
-       "Trivial grammar")
+    (defvar *grammar* *simple-grammar*
+      "The grammar used; intitially trivial, but we can elaborate.")
+  #+END_SRC
+  #+END_QUOTE
+
+  - a variable is routinely changed during the course of running the
+    program; a paramemter will normally stay constant.
+  - a change to a parameter is considered a change to the program,
+    not by the program.
+    - what about when the generatedc word happens to correspond to a
+     rule; e.g.  sentence, Article?
+
+  #+BEGIN_QUOTE
+  #+BEGIN_SRC lisp
+    (defun generate (phrase)
+      "Generate a random sentence or phrase"
+      (cond ((listp phrase)
+             (mappend #'generate phrase))
+            ((rewrites phrase)
+             (generate (ransom-elt (rewrites phrase))))
+            (t (list phrase))))
+  #+END_SRC
+  #+END_QUOTE
+
+  - data-driven programming: data (rewrites associated with
+    category) drives what the prgoram does next.
+  - concise and extensible: add a new association without having to
+    modify the program.
+  - with if instead of cond:
+
+  #+BEGIN_QUOTE
+  #+BEGIN_SRC lisp
+    (defun generate (phrase)
+      "Generate a random sentence or phrase"
+      (if (listp phrase)
+          (mappend #'generate phrase)
+          (let ((choices (rewrites phrase)))
+            (if (null choices)
+                (list phrase)
+                (generate (random-elt choices))))))
+  #+END_SRC
+  #+END_QUOTE
+
+
+  #+BEGIN_SRC lisp :tangle english.lisp
+    (defpackage "ENGLISH"
+      (:use "COMMON-LISP")
+      (:export "GENERATE-WITH-COND"
+               "GENERATE-WITH-IF"
+               "REWRITES"
+               "RULE-LHS"
+               "RULE-RHS"
+               "*GRAMMAR*"))
+    
+    (in-package "ENGLISH")
+    
+    (defparameter *simple-grammar*
+      '((sentence -> (noun-phrase verb-phrase))
+        (noun-phrase -> (Article Noun))
+        (verb-phares -> (Verb noun-phrase))
+        (Article -> the a)
+        (Noun -> man ball woman table)
+        (Verb -> hit took saw liked))
+      "A grammar for a trivial subset of English.")
+    
+    (defvar *grammar* *simple-grammar*
+      "The grammar used by generate. Initially, this is *simple-grammar*,
+      but we can switch to other grammars.")
+    
+    ;;; What about (setf rule-lhs car), etc.?
+    (defun rule-lhs (rule)
+      "The left-hand side of a rule."
+      (car rule))
+    
+    (defun rule-rhs (rule)
+      "The right-hand side of a rule."
+      (cdr (cdr rule)))
+    
+    (defun rewrites (category)
+      "Return a list of the possible rewrites for this category."
+      (rule-rhs (assoc category *grammar*)))
+    
+    (defun generate-with-cond (phrase)
+      "Generate a random sentence or phrase."
+      (cond ((listp phrase)
+             (mappend #'generate phrase))
+            ((rewrites phrase)
+             (generate (random-elt (rewrites phrase))))
+            (t (list phrase))))
+    
+    (defun generate-with-if (phrase)
+      "Generate a random sentence or phrase."
+      (if (listp phrase)
+          (mappend #'generate phrase)
+          (let ((choices (rewrites phrase)))
+            (if (null choices)
+                (list phrase)
+                (generate (random-elt choices))))))
+    
+  #+END_SRC
+
+  #+BEGIN_SRC lisp :tangle 2.1.lisp :shebang #!/usr/local/bin/sbcl --script
+    (load "english")
+    (use-package "ENGLISH")
+    (pprint (generate-with-cond 'sentence))
+    (pprint (generate-with-if 'sentence))
+    
+  #+END_SRC
+** DONE packages
+   CLOSED: [2011-06-30 Thu 16:42]
+
+   #+BEGIN_SRC lisp :tangle test-package.lisp
+     (defpackage "TEST-PACKAGE"
+       (:use "COMMON-LISP")
+       (:export "HARRO"))
      
-     (defvar *grammar* *simple-grammar*
-       "The grammar used; intitially trivial, but we can elaborate.")
+     (in-package "TEST-PACKAGE")
+     
+     (defun harro () "harro")
+     
    #+END_SRC
-   #+END_QUOTE
 
-   - a variable is routinely changed during the course of running the
-     program; a paramemter will normally stay constant.
-   - a change to a parameter is considered a change to the program,
-     not by the program.
-     - what about when the generatedc word happens to correspond to a
-      rule; e.g.  sentence, Article?
-
-   #+BEGIN_QUOTE
-   #+BEGIN_SRC lisp
-     (defun generate (phrase)
-       "Generate a random sentence or phrase"
-       (cond ((listp phrase)
-              (mappend #'generate phrase))
-             ((rewrites phrase)
-              (generate (ransom-elt (rewrites phrase))))
-             (t (list phrase))))
+   #+BEGIN_SRC lisp :tangle use-test-package.lisp :shebang #!/usr/local/bin/sbcl --script
+     (load "test-package")
+     (use-package "TEST-PACKAGE")
+     
+     (assert (string= (harro) "harro"))
+     
    #+END_SRC
-   #+END_QUOTE
-
-   - data-driven programming: data (rewrites associated with
-     category) drives what the prgoram does next.
-   - concise and extensible: add a new association without having to
-     modify the program.
-   - with if instead of cond:
-
-   #+BEGIN_QUOTE
-   #+BEGIN_SRC lisp
-     (defun generate (phrase)
-       "Generate a random sentence or phrase"
-       (if (listp phrase)
-           (mappend #'generate phrase)
-           (let ((choices (rewrites phrase)))
-             (if (null choices)
-                 (list phrase)
-                 (generate (random-elt choices))))))
-   #+END_SRC
-   #+END_QUOTE
