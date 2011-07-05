@@ -198,25 +198,22 @@
       "Return a list of the possible rewrites for this category."
       (rule-rhs (assoc category *grammar*)))
     
-    (defun generate (phrase)
-      (generate-with-cond phrase))
-    
     (defun generate-with-cond (phrase)
       "Generate a random sentence or phrase."
       (cond ((listp phrase)
-             (mappend #'generate phrase))
+             (mappend #'generate-with-cond phrase))
             ((rewrites phrase)
-             (generate (random-elt (rewrites phrase))))
+             (generate-with-cond (random-elt (rewrites phrase))))
             (t (list phrase))))
     
     (defun generate-with-if (phrase)
       "Generate a random sentence or phrase."
       (if (listp phrase)
-          (mappend #'generate phrase)
+          (mappend #'generate-with-if phrase)
           (let ((choices (rewrites phrase)))
             (if (null choices)
                 (list phrase)
-                (generate (random-elt choices))))))
+                (generate-with-if (random-elt choices))))))
     
   #+END_SRC
 
@@ -227,7 +224,7 @@
     ;;; (as opposed to ``sentence''; can rectify this with (in-package
     ;;; english)?
     ;;;
-    ;;; Cf. http://flownet.com/gat/packages.pdf
+    ;;; Cf. <http://flownet.com/gat/packages.pdf>.
     (pprint (generate-with-cond 'english::sentence))
     
     
