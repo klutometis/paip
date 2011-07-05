@@ -160,10 +160,22 @@
     
     (in-package "ENGLISH")
     
+    (defun mappend (fn the-list)
+      "Apply fn to each element of the list and append the results."
+      (apply #'append (mapcar fn the-list)))
+    
+    (defun one-of (set)
+      "Pick one element of set, and make list of it."
+      (list (random-elt set)))
+    
+    (defun random-elt (choices)
+      "Choose an element from a list at random."
+      (elt choices (random (length choices))))
+    
     (defparameter *simple-grammar*
       '((sentence -> (noun-phrase verb-phrase))
         (noun-phrase -> (Article Noun))
-        (verb-phares -> (Verb noun-phrase))
+        (verb-phrase -> (Verb noun-phrase))
         (Article -> the a)
         (Noun -> man ball woman table)
         (Verb -> hit took saw liked))
@@ -185,6 +197,9 @@
     (defun rewrites (category)
       "Return a list of the possible rewrites for this category."
       (rule-rhs (assoc category *grammar*)))
+    
+    (defun generate (phrase)
+      (generate-with-cond phrase))
     
     (defun generate-with-cond (phrase)
       "Generate a random sentence or phrase."
@@ -208,8 +223,13 @@
   #+BEGIN_SRC lisp :tangle 2.1.lisp :shebang #!/usr/local/bin/sbcl --script
     (load "english")
     (use-package "ENGLISH")
-    (pprint (generate-with-cond 'sentence))
-    (pprint (generate-with-if 'sentence))
+    ;;; Print-read consistency seems to demand ``english::sentence'' here
+    ;;; (as opposed to ``sentence''; can rectify this with (in-package
+    ;;; english)?
+    ;;;
+    ;;; Cf. http://flownet.com/gat/packages.pdf
+    (pprint (generate-with-cond 'english::sentence))
+    
     
   #+END_SRC
 ** DONE packages
