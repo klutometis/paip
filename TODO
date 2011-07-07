@@ -147,8 +147,10 @@
   #+END_SRC
   #+END_QUOTE
 
-
   #+BEGIN_SRC lisp :tangle english.lisp
+    (load "utilities")
+    (use-package "UTILITIES")
+    
     (defpackage "ENGLISH"
       (:use "COMMON-LISP")
       (:export "GENERATE-WITH-COND"
@@ -156,13 +158,10 @@
                "REWRITES"
                "RULE-LHS"
                "RULE-RHS"
-               "*GRAMMAR*"))
+               "*GRAMMAR*"
+               "RANDOM-ELT"))
     
     (in-package "ENGLISH")
-    
-    (defun mappend (fn the-list)
-      "Apply fn to each element of the list and append the results."
-      (apply #'append (mapcar fn the-list)))
     
     (defun one-of (set)
       "Pick one element of set, and make list of it."
@@ -219,16 +218,60 @@
 
   #+BEGIN_SRC lisp :tangle 2.1.lisp :shebang #!/usr/local/bin/sbcl --script
     (load "english")
+    (load "utilities")
+    
     (use-package "ENGLISH")
+    (use-package "UTILITIES")
+    
+    ;;; This is a poor solution, since it calculates choices whether or
+    ;;; not we use them.
+    (defun generate (phrase)
+      "Generate a random sentence or phrase."
+      (let ((choices (rewrites phrase)))
+        (cond ((listp phrase)
+               (mappend #'generate phrase))
+              ((null choices)
+               (list phrase))
+              (t (generate (random-elt choices))))))
+    
     ;;; Print-read consistency seems to demand ``english::sentence'' here
     ;;; (as opposed to ``sentence''; can rectify this with (in-package
     ;;; english)?
     ;;;
     ;;; Cf. <http://flownet.com/gat/packages.pdf>.
-    (pprint (generate-with-cond 'english::sentence))
+    
+    (pprint (generate 'english::sentence))
     
     
   #+END_SRC
+
+  #+BEGIN_SRC lisp :tangle 2.2.lisp :shebang #!/usr/local/bin/sbcl --script
+    (load "english")
+    (load "utilities")
+    
+    (use-package "ENGLISH")
+    (use-package "UTILITIES")
+    
+    (defun terminalp (choices)
+      (null choices))
+    
+    ;;; This is a trivial transformation of GENERATE-WITH-IF; do we need
+    ;;; to do something different?
+    (defun generate (phrase)
+      "Generate a random sentence or phrase."
+      ;; Should we do some kind of filtering here for non-terminals? But
+      ;; we have to preserve order.
+      (if (listp phrase)
+          (mappend #'generate phrase)
+          (let ((choices (rewrites phrase)))
+            (if (terminalp choices)
+                (list phrase)
+                (generate (random-elt choices))))))
+    
+    (pprint (generate 'english::sentence))
+    
+  #+END_SRC
+
 ** DONE packages
    CLOSED: [2011-06-30 Thu 16:42]
 
@@ -250,3 +293,40 @@
      (assert (string= (harro) "harro"))
      
    #+END_SRC
+** DONE =let= in =cond=
+   CLOSED: [2011-07-06 Wed 08:38]
+
+   #+BEGIN_SRC lisp :tangle test-cond-with-let.lisp :shebang #!/usr/local/bin/sbcl --script
+     (assert (= (cond ((let ((x t)) x) 2)) 2))
+     
+   #+END_SRC
+* DONE How should we deal with utilities like =mappend=?
+  CLOSED: [2011-07-07 Thu 08:26]
+  - CLOSING NOTE [2011-07-07 Thu 08:27] \\
+    We're putting them in the chapter-agnostic =UTILITIES= package for
+    now; will change if necessary (obeying YAGNI, though, for the time
+    being).
+  Should they be part of a generic =utils= package? Or something
+  chapter-specific (e.g. =chapter-1=)?
+
+  The chapter-specific ones are hard to find (have to grep); generic
+  ones may run into trouble with multiple implementations. Maybe the
+  former is a case of YAGNI, though.
+
+  =chapter-1= is a local optimization, since I don't yet know how to
+  group the things (may become clear later).
+
+
+  #+BEGIN_SRC lisp :tangle utilities.lisp
+    (defpackage "UTILITIES"
+      (:use "COMMON-LISP")
+      (:export "MAPPEND"))
+    
+    (in-package "UTILITIES")
+    
+    (defun mappend (fn the-list)
+      "Apply fn to each element of the list and append the results."
+      (apply #'append (mapcar fn the-list)))
+     
+    
+  #+END_S
