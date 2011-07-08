@@ -272,6 +272,11 @@
     
   #+END_SRC
 
+  - use the most natural notation available to solve the problem, and
+    then worry about writing an interpreter for that notation
+  - advantage of representing information in a declarative form is
+    that it can be easier to use the information for multiple purposes.
+
 ** DONE packages
    CLOSED: [2011-06-30 Thu 16:42]
 
