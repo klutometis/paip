@@ -149,10 +149,10 @@
 
   #+BEGIN_SRC lisp :tangle english.lisp
     (load "utilities")
-    (use-package "UTILITIES")
     
     (defpackage "ENGLISH"
-      (:use "COMMON-LISP")
+      (:use "COMMON-LISP"
+            "UTILITIES")
       (:export "GENERATE-WITH-COND"
                "GENERATE-WITH-IF"
                "REWRITES"
@@ -277,6 +277,45 @@
   - advantage of representing information in a declarative form is
     that it can be easier to use the information for multiple purposes.
 
+  #+BEGIN_SRC lisp :tangle 2.3.lisp :shebang #!/usr/local/bin/sbcl --script
+    (load "utilities")
+    (load "english")
+    
+    (use-package "UTILITIES")
+    (use-package "ENGLISH")
+    
+    (defun generate (phrase &optional (depth 1))
+      "Generate a random sentence or phrase."
+      (cond ((> depth 16)
+             (format *error-output* "Generate-depth (~a) too high; bailing out: ~a.~%" depth phrase)
+             (list phrase))
+            ((listp phrase)
+             (mappend
+              (lambda (phrase) (generate phrase (+ depth 1)))
+              phrase))
+            ((functionp phrase)
+             (list (funcall phrase)))
+            ((rewrites phrase)
+             (generate (random-elt (rewrites phrase)) (+ depth 1)))
+            (t (list phrase))))
+    
+    (defparameter *scheme-grammar*
+      `((datum -> simple-datum compound-datum)
+        (simple-datum -> boolean number character string symbol)
+        (symbol -> identifier)
+        (compound-datum -> list vector)
+        (list -> (#\( datum* #\)))
+        (datum* -> () (datum datum*))
+        (vector -> (#\# #\( datum* #\)))
+        (number -> ,(lambda () (random 256)))
+        ))
+    
+    (setf *grammar* *scheme-grammar*)
+    
+    (let ((*random-state* (make-random-state t)))
+      (pprint (generate 'datum)))
+    
+  #+END_SRC
 ** DONE packages
    CLOSED: [2011-06-30 Thu 16:42]
 
