@@ -332,6 +332,4 @@
     (defun mappend (fn the-list)
       "Apply fn to each element of the list and append the results."
       (apply #'append (mapcar fn the-list)))
-     
-    
-  #+END_S
+  #+END_SRC
